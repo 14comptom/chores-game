@@ -12,6 +12,17 @@ fn flush_output() {
     let _ = io::stdout().flush();
 }
 
+const COOKING_HEALTH: u32 = 3;
+const LAUNDRY_HEALTH: u32 = 3;
+const ELECTRICAL_REPAIR_HEALTH: u32 = 6;
+const MOWING_HEALTH: u32 = 6;
+const COOKING_COINS: u32 = 3;
+const LAUNDRY_COINS: u32 = 3;
+const ELECTRICAL_REPAIR_COINS: u32 = 3;
+const MOWING_COINS: u32 = 3;
+const SLEEP_HEALTH: u32 = 3;
+const SLEEPING_COINS: u32 = 3;
+
 fn print_game_rules() {
     println!("Welcome to Chores game");
     println!("Select [task] [sleep] or [trivia] by entering their number index");
@@ -91,39 +102,16 @@ fn print_destination_requirments(game_stats: &GameStats, message: &Vec<String>) 
     }
 }
 
-enum AllActivitiesHealth {
-    Cooking,
-    Laundry,
-    ElectricalRepair,
-    Mowing,
-    Sleeping,
+enum AllActivitiesAdditions {
+    Cooking(u32, u32),
+    Laundry(u32, u32),
+    ElectricalRepair(u32, u32),
+    Mowing(u32, u32),
+    Sleeping(u32, u32),
+    Trivia(u32, u32),
 }
 
-fn add_activity_head(activity_health: AllActivitiesHealth) -> u32 {
-    match activity_health {
-        AllActivitiesHealth::Cooking => 3,
-        AllActivitiesHealth::Laundry => 3,
-        AllActivitiesHealth::ElectricalRepair => 6,
-        AllActivitiesHealth::Mowing => 6,
-        AllActivitiesHealth::Sleeping => 20,
-    }
-}
-
-// fn goto_chores(destination: &Destination, game_stats: &mut GameStats) {
-//     let chores_message = vec![
-//         "Choose a chore from the following:".to_string(),
-//         "1. Cooking [+3]".to_string(),
-//         "2. Laundry [+3]".to_string(),
-//         "3. Electrical Repair [+6]".to_string(),
-//         "4. Mowing +[6]".to_string(),
-//     ];
-
-//     print_destination_requirments(&game_stats, &chores_message);
-// }
-
-// fn goto_sleep(destination: &Destination, game_stats: &mut GameStats) {}
-
-// fn goto_trivia(destination: &Destination, game_stats: &mut GameStats) {}
+fn perform_chores(chores_stats: &[AllActivitiesAdditions]) {}
 
 fn perfom_taks(destination: &Destination, game_stats: &mut GameStats, choice: u8) {
     let chores_rules = vec![
@@ -133,26 +121,45 @@ fn perfom_taks(destination: &Destination, game_stats: &mut GameStats, choice: u8
         "3. Electrical Repair [+6]".to_string(),
         "4. Mowing +[6]".to_string(),
     ];
-    let sleeping_rules = Vec::new();
-    let trivia_rules = Vec::new();
+    println!("We got here: call");
+    let sleeping_rules = vec!["Slept:-. [H: +20] [C: -20]".to_string()];
+    //let trivia_rules = Vec::new();
 
-    if choice == 1 {
-        print_destination_requirments(&game_stats, &chores_rules);
-    } else if choice == 2 {
-        print_destination_requirments(&game_stats, &sleeping_rules);
-    } else {
-        print_destination_requirments(&game_stats, &trivia_rules);
-    }
-
+    // if choice == 1 {
+    //     print_destination_requirments(&game_stats, &chores_rules);
+    // } else if choice == 2 {
+    //     print_destination_requirments(&game_stats, &sleeping_rules);
+    // } else {
+    //     print_destination_requirments(&game_stats, &trivia_rules);
+    // }
+    println!("We got here: 135");
     let chore_lenght = chores_rules.len() - 1;
+    println!("We got here: 137");
 
-    let user_choice = take_user_choice(chore_lenght);
-
-    let cooking = AllActivitiesHealth::Cooking;
-    let laundry = AllActivitiesHealth::Cooking;
-    let electrical_repair = AllActivitiesHealth::ElectricalRepair;
-    let mowing = AllActivitiesHealth::Mowing;
-    let sleeping = AllActivitiesHealth::Sleeping;
+    // let user_choice = take_user_choice(chore_lenght);
+    println!("We got here: 140");
+    let chores_stats = vec![
+        AllActivitiesAdditions::Cooking(COOKING_HEALTH, COOKING_COINS),
+        AllActivitiesAdditions::Laundry(LAUNDRY_HEALTH, LAUNDRY_COINS),
+        AllActivitiesAdditions::ElectricalRepair(ELECTRICAL_REPAIR_HEALTH, ELECTRICAL_REPAIR_COINS),
+        AllActivitiesAdditions::Mowing(MOWING_HEALTH, MOWING_COINS),
+    ];
+    println!("We got here: 147");
+    let sleep_health = vec![AllActivitiesAdditions::Sleeping(
+        SLEEP_HEALTH,
+        SLEEPING_COINS,
+    )];
+    println!("We got here: 152");
+    let choice_tracker = 1;
+    println!("We got here: 2");
+    for item in &chores_stats {
+        println!("We got here: 1");
+        if choice == choice_tracker {
+            println!("We got here");
+            print_destination_requirments(&game_stats, &chores_rules);
+            perform_chores(&chores_stats);
+        }
+    }
 }
 
 fn chores_game_init() {
@@ -173,13 +180,7 @@ fn chores_game_init() {
     */
     if game_stats.chest > 0 && game_stats.health > 0 {
         perfom_taks(&destination, &mut game_stats, choice);
-        // if choice == 1 {
-        //     goto_chores(&destination, &mut game_stats);
-        // } else if choice == 2 {
-        //     goto_sleep(&destination, &mut game_stats);
-        // } else if choice == 3 {
-        //     goto_trivia(&destination, &mut game_stats);
-        // }
+        println!("We got here: send param");
     } else {
         dbg!("You loose");
     }
