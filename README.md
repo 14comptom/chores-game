@@ -46,7 +46,12 @@ enum AllActivitiesAdditions {
 
 ## Warning
 * No error handling in this version
-* Not usable in this version
+* Only chores work
+
+## Work in progress
+* Sleep 
+* Trivia
+* Correct evaluation if health and chest.
 
 ## Status
  * Work in progress

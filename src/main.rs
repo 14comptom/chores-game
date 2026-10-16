@@ -7,9 +7,19 @@
 #![allow(unused)]
 
 use std::io::{self, Write};
+use std::process;
 
 fn flush_output() {
     let _ = io::stdout().flush();
+}
+
+fn quit_game(game_stats: &GameStats) {
+    println!("==GAME OVER==");
+    println!(
+        "[Health]: [{}] | [chest]: [{}]",
+        game_stats.health, game_stats.chest
+    );
+    process::exit(1);
 }
 
 const COOKING_HEALTH: u32 = 3;
@@ -28,6 +38,7 @@ fn print_game_rules() {
     println!("Select [task] [sleep] or [trivia] by entering their number index");
     println!("Each activity reduces your health and adds coints to chest");
     println!("When either chest or health hits [0], you DIE!");
+    println!("Press ^c to quit the game.cl");
     println!();
 }
 
@@ -42,7 +53,7 @@ struct Destination {
 
 fn take_user_choice(max_len: usize) -> u8 {
     let mut buffer = String::new();
-
+    println!();
     print!("> ");
     flush_output();
     io::stdin()
@@ -126,12 +137,40 @@ impl AllActivitiesAdditions {
     }
 }
 
+fn end_game(game_stats: &GameStats) -> bool {
+    println!(
+        "You loose: [Health]: [{}] | [chest]: [{}]",
+        game_stats.health, game_stats.chest
+    );
+
+    print!("Restart ['0 {{continue}}'/'1 {{end}}': ");
+    flush_output();
+    let mut buffer = String::new();
+
+    io::stdin()
+        .read_line(&mut buffer)
+        .expect("Failed to read line");
+
+    let buffer = buffer
+        .trim()
+        .parse::<i32>()
+        .expect("Faield to convert ti i32");
+
+    if buffer == 0 {
+        true
+    } else if buffer == 1 {
+        false
+    } else {
+        false
+    }
+}
+
+// Evaluates addition or subtraction to health and chest in every call.
 fn perform_chores(chores_stats: &AllActivitiesAdditions, mut game_stats: &mut GameStats) {
-    let mut task_wheight: (u32, u32) = chores_stats.get_stats();
+    let task_wheight: (u32, u32) = chores_stats.get_stats();
 
     game_stats.chest = game_stats.chest + task_wheight.1;
     game_stats.health = game_stats.chest + task_wheight.0;
-    println!("{:?}", chores_stats)
 }
 
 fn perfom_taks(destination: &Destination, game_stats: &mut GameStats, choice: u8) {
@@ -176,8 +215,12 @@ fn perfom_taks(destination: &Destination, game_stats: &mut GameStats, choice: u8
     for item in &chores_stats {
         if second_choice == choice_tracker {
             dbg!("Choice");
-            print_destination_requirments(&game_stats, &chores_rules);
-            perform_chores(&chores_stats[choice_tracker as usize], game_stats);
+            perform_chores(&item, game_stats);
+            if game_stats.chest <= 0 || game_stats.health <= 0 {
+                if !end_game(game_stats) {
+                    quit_game(game_stats);
+                }
+            }
             break;
         }
         choice_tracker += 1;
@@ -196,16 +239,19 @@ fn chores_game_init() {
         chest: 20,
     };
 
-    let (choice, destination) = set_destination();
-
     /*
     *Warning:   Comparison values are hardcoded and need to be manually editied
                 in any addition in v0.1.0
     */
-    if game_stats.chest > 0 && game_stats.health > 0 {
-        perfom_taks(&destination, &mut game_stats, choice);
-    } else {
-        dbg!("You loose");
+    loop {
+        println!("Enter a destination:");
+        let (choice, destination) = set_destination();
+        if game_stats.chest > 0 && game_stats.health > 0 {
+            perfom_taks(&destination, &mut game_stats, choice);
+        } else {
+            dbg!("You loose");
+            quit_game(&game_stats);
+        }
     }
 }
 
