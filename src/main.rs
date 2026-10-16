@@ -102,6 +102,7 @@ fn print_destination_requirments(game_stats: &GameStats, message: &Vec<String>) 
     }
 }
 
+#[derive(Debug)]
 enum AllActivitiesAdditions {
     Cooking(u32, u32),
     Laundry(u32, u32),
@@ -111,7 +112,27 @@ enum AllActivitiesAdditions {
     Trivia(u32, u32),
 }
 
-fn perform_chores(chores_stats: &[AllActivitiesAdditions]) {}
+impl AllActivitiesAdditions {
+    fn get_stats(&self) -> (u32, u32) {
+        match self {
+            // Return values of health and coins appended to each enum.
+            AllActivitiesAdditions::Cooking(health, coins) => (*health, *coins),
+            AllActivitiesAdditions::Laundry(health, coins) => (*health, *coins),
+            AllActivitiesAdditions::ElectricalRepair(health, coins) => (*health, *coins),
+            AllActivitiesAdditions::Mowing(health, coins) => (*health, *coins),
+            AllActivitiesAdditions::Sleeping(health, coins) => (*health, *coins),
+            AllActivitiesAdditions::Trivia(health, coins) => (*health, *coins),
+        }
+    }
+}
+
+fn perform_chores(chores_stats: &AllActivitiesAdditions, mut game_stats: &mut GameStats) {
+    let mut task_wheight: (u32, u32) = chores_stats.get_stats();
+
+    game_stats.chest = game_stats.chest + task_wheight.1;
+    game_stats.health = game_stats.chest + task_wheight.0;
+    println!("{:?}", chores_stats)
+}
 
 fn perfom_taks(destination: &Destination, game_stats: &mut GameStats, choice: u8) {
     let chores_rules = vec![
@@ -121,45 +142,48 @@ fn perfom_taks(destination: &Destination, game_stats: &mut GameStats, choice: u8
         "3. Electrical Repair [+6]".to_string(),
         "4. Mowing +[6]".to_string(),
     ];
-    println!("We got here: call");
     let sleeping_rules = vec!["Slept:-. [H: +20] [C: -20]".to_string()];
-    //let trivia_rules = Vec::new();
+    let trivia_rules = Vec::new();
 
-    // if choice == 1 {
-    //     print_destination_requirments(&game_stats, &chores_rules);
-    // } else if choice == 2 {
-    //     print_destination_requirments(&game_stats, &sleeping_rules);
-    // } else {
-    //     print_destination_requirments(&game_stats, &trivia_rules);
-    // }
-    println!("We got here: 135");
     let chore_lenght = chores_rules.len() - 1;
-    println!("We got here: 137");
 
-    // let user_choice = take_user_choice(chore_lenght);
-    println!("We got here: 140");
     let chores_stats = vec![
         AllActivitiesAdditions::Cooking(COOKING_HEALTH, COOKING_COINS),
         AllActivitiesAdditions::Laundry(LAUNDRY_HEALTH, LAUNDRY_COINS),
         AllActivitiesAdditions::ElectricalRepair(ELECTRICAL_REPAIR_HEALTH, ELECTRICAL_REPAIR_COINS),
         AllActivitiesAdditions::Mowing(MOWING_HEALTH, MOWING_COINS),
     ];
-    println!("We got here: 147");
     let sleep_health = vec![AllActivitiesAdditions::Sleeping(
         SLEEP_HEALTH,
         SLEEPING_COINS,
     )];
-    println!("We got here: 152");
-    let choice_tracker = 1;
-    println!("We got here: 2");
-    for item in &chores_stats {
-        println!("We got here: 1");
-        if choice == choice_tracker {
-            println!("We got here");
-            print_destination_requirments(&game_stats, &chores_rules);
-            perform_chores(&chores_stats);
-        }
+
+    let mut choice_tracker = 1;
+
+    // Give user rules for specific chore they select
+    let second_choice;
+    if choice == 1 {
+        print_destination_requirments(&game_stats, &chores_rules);
+        second_choice = take_user_choice(chore_lenght);
+    } else if choice == 2 {
+        print_destination_requirments(&game_stats, &sleeping_rules);
+        second_choice = take_user_choice(chore_lenght);
+    } else {
+        print_destination_requirments(&game_stats, &trivia_rules);
+        second_choice = take_user_choice(chore_lenght);
     }
+
+    for item in &chores_stats {
+        if second_choice == choice_tracker {
+            dbg!("Choice");
+            print_destination_requirments(&game_stats, &chores_rules);
+            perform_chores(&chores_stats[choice_tracker as usize], game_stats);
+            break;
+        }
+        choice_tracker += 1;
+    }
+
+    println!("{}: {}", game_stats.chest, game_stats.health)
 }
 
 fn chores_game_init() {
@@ -180,7 +204,6 @@ fn chores_game_init() {
     */
     if game_stats.chest > 0 && game_stats.health > 0 {
         perfom_taks(&destination, &mut game_stats, choice);
-        println!("We got here: send param");
     } else {
         dbg!("You loose");
     }
